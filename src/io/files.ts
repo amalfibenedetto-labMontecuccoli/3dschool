@@ -10,6 +10,8 @@
 // Lane 16: a file is measured before it is read: one over its limit (MAX_READ_BYTES) is
 // refused with FileTooLarge and never read into memory.
 
+import { schoolHooks } from "../school/hooks";
+
 export interface FileType {
   description: string;
   mime: string;
@@ -249,6 +251,11 @@ export async function saveFile(name: string, bytes: Uint8Array, type: FileType, 
     const { invoke } = await import("@tauri-apps/api/core");
     await invoke("save_file_atomic", bytes, { headers: { "x-path": encodeURIComponent(path) } });
     return { name: baseName(path), handle: { kind: "tauri", path } };
+  }
+  // The classroom edition keeps every saved or exported file in the person's Google Drive.
+  if (schoolHooks.deliver) {
+    if (signal?.aborted) return null;
+    return schoolHooks.deliver(name, bytes, type.mime);
   }
   const api = fsa();
   if (api) {

@@ -1,13 +1,8 @@
 name: Pages
 
-# The public site, https://sawhorse3d.com: the landing page (site/), the browser demo at
-# /app/, the user guide at /guide/ and the changelog at /changelog/, assembled by
-# scripts/build-site.mjs and deployed with GitHub Pages' "workflow" build type.
-#
-# The site base comes from actions/configure-pages: "" with the custom domain, "/sawhorse"
-# on the github.io project address, so the demo's assets resolve on either. Before it
-# deploys, the build is checked (links, outside resources, image sizes, the download links
-# answer) and smoke-tested in Chromium (the demo's kernel loads and a box extrudes).
+# 3Dschool, the school edition of Sawhorse, published with GitHub Pages ("workflow" build type).
+# The kernel (Rust, compiled to WebAssembly) and the app (Vite) are built here; the base path
+# comes from actions/configure-pages ("/<repository>" on the github.io project address).
 on:
   push:
     branches: [main]
@@ -18,18 +13,18 @@ permissions:
   pages: write
   id-token: write
 
-# One deployment at a time; a newer push waits rather than cancelling one mid-deploy.
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   SAWHORSE_NO_WSL: "1"
 
 jobs:
   build:
-    name: Build the site
+    name: Build the app
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -45,37 +40,18 @@ jobs:
       - name: install wasm-pack
         run: npm install -g wasm-pack@0.15.0
       - run: npm ci
-      - name: wasm-pack build (the demo's kernel)
+      - name: wasm-pack build (the kernel)
         run: npm run wasm
       - id: pages
         uses: actions/configure-pages@v5
-      - name: assemble the site
-        run: node scripts/build-site.mjs --out dist-site --base "${{ steps.pages.outputs.base_path }}/"
-      - name: provenance (no source maps, no SketchUp document bytes in what we publish)
-        run: node scripts/check-provenance.mjs dist-site
-      - name: check the site (links, outside resources, sizes, download links)
-        # --allow-missing-release: the version bump lands on main (and deploys the site
-        # naming the new release's files) before the tag is pushed and the release
-        # workflow's draft is published, so for that window the download links answer 404.
-        # A link into a release whose tag page answers 404 (not published yet) is noted and
-        # let through; a link into a published release must still answer. The flag does not
-        # hide a wrong file name: the 2026-10-13 failure was the rpm's name, which
-        # check-site refuses offline against package.json's version (and the online check
-        # catches once the release is out).
-        run: node scripts/check-site.mjs --dir dist-site --base "${{ steps.pages.outputs.base_path }}/" --online --allow-missing-release
-      - name: install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-      - name: smoke test (landing page, demo kernel, a box, save and open)
-        run: node scripts/site-smoke.mjs --dir dist-site --prefix "${{ steps.pages.outputs.base_path }}/" --shots site-smoke --shot-prefix ci
-      - uses: actions/upload-artifact@v5
-        if: always()
-        with:
-          name: site-smoke
-          path: site-smoke/
-          if-no-files-found: ignore
+      - name: build the app
+        env:
+          VITE_BASE: ${{ steps.pages.outputs.base_path }}/
+        run: npm run build
+      - run: touch dist/.nojekyll
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: dist-site
+          path: dist
 
   deploy:
     name: Deploy to GitHub Pages

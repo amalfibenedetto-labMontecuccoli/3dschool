@@ -12,6 +12,8 @@ import "./styles/tokens.css";
 import "./styles/app.css";
 import "./styles/drawings.css";
 import { App } from "./App";
+import { SchoolHost } from "./school/SchoolHost";
+import { startTranslating } from "./school/i18n";
 
 // ?theme=dark or ?theme=light forces a theme (screenshots, demos); otherwise follow the OS.
 try {
@@ -21,8 +23,13 @@ try {
   /* no location in some hosts */
 }
 
+// The classroom edition: Italian (or English) for what the app shows, and the school's sign-in.
+startTranslating();
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <SchoolHost>
+      <App />
+    </SchoolHost>
   </StrictMode>,
 );

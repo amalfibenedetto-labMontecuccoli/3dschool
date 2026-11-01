@@ -38,8 +38,10 @@ export function contentSecurityPolicy(renderService = process.env.VITE_RENDER_SE
   const withRender = (list: string) => (render ? `${list} ${render}` : list);
   return [
     "default-src 'self'",
-    "script-src 'self' 'wasm-unsafe-eval' blob:",
-    "style-src 'self' 'unsafe-inline'",
+    // The classroom edition loads Google's sign-in script (accounts.google.com/gsi/client).
+    "script-src 'self' 'wasm-unsafe-eval' blob: https://accounts.google.com",
+    "frame-src https://accounts.google.com",
+    "style-src 'self' 'unsafe-inline' https://accounts.google.com",
     withRender("img-src 'self' data: blob:"),
     "font-src 'self' data:",
     "worker-src 'self' blob:",
