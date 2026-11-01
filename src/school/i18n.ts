@@ -346,6 +346,24 @@ const IT: Record<string, string> = {
   "· Sawhorse · MIT": "· 3Dschool · MIT",
   "The 3D model": "Il modello 3D",
   ". Click to change.": ". Fai clic per cambiarle.",
+  "Follow units (1/16 in)": "Segui le unità (1/16 in)",
+  "Groups, components and solids": "Gruppi, componenti e solidi",
+  "Double-click to rename": "Doppio clic per rinominare",
+  "Restart the plugin": "Riavvia il plugin",
+  Part: "Pezzo",
+  Qty: "Q.tà",
+  Material: "Materiale",
+  "Grain runs along the length": "Le fibre vanno lungo la lunghezza",
+  "No material or stock set": "Nessun materiale o tavola impostati",
+  "Widen the panel for long part names and notes (or drag the panel's left edge)": "Allarga il pannello per nomi e note lunghi (o trascina il suo bordo sinistro)",
+  "1/16 in for fractional, decimal and ft-in units; 0.5 mm for metric": "1/16 di pollice per pollici e piedi; 0,5 mm per il metrico",
+  "Paint (B): click a face to paint it, a closed group or component to paint what inside it has no paint of its own. Alt+click picks a material up. Double-click a textured face to move, turn or scale its texture.":
+    "Colora (B): clicca una faccia per colorarla, o un gruppo o componente chiuso per colorare ciò che dentro non ha un colore proprio. Alt+clic prende un materiale. Doppio clic su una faccia con texture per spostarla, ruotarla o scalarla.",
+  "Click to select its pieces in the model (Shift: a range of rows, Ctrl: one more). Right-click to set the grain or the stock of the picked rows.":
+    "Clicca per selezionare i suoi pezzi nel modello (Maiusc: un gruppo di righe, Ctrl: una in più). Clic destro per impostare le fibre o la tavola delle righe scelte.",
+  "Counted. Untick to leave it out of the totals and the nesting (it stays listed).": "Contato. Togli la spunta per escluderlo dai totali e dalla disposizione (resta nell'elenco).",
+  "Board feet are counted on the rough (nominal) thickness each part is cut from: a 3/4 in part from 4/4 lumber counts as 1 in.":
+    "I piedi tavola si contano sullo spessore grezzo (nominale) da cui si taglia ogni pezzo: un pezzo da 3/4 di pollice ricavato da una tavola 4/4 conta come 1 pollice.",
 };
 
 /** Texts with a number or a name in them. */
@@ -358,6 +376,15 @@ const PATTERNS: Array<[RegExp, (m: RegExpExecArray) => string]> = [
   [/^(\d+) solids?$/, (m) => `${m[1]} solidi`],
   [/^Section (\d+)$/, (m) => `Sezione ${m[1]}`],
   [/^Scene (\d+)$/, (m) => `Scena ${m[1]}`],
+  [/^(\d+) solids? · (\d+) faces? · genus (\d+) · (.+) · watertight$/, (m) => `${m[1]} solidi · ${m[2]} facce · genere ${m[3]} · ${m[4]} · chiuso`],
+  [/^Hide (.+)$/, (m) => `Nascondi ${m[1]}`],
+  [/^Show (.+)$/, (m) => `Mostra ${m[1]}`],
+  [/^(.+)\. Ctrl\+Z undoes it in one step\.$/, (m) => `${m[1]}. Ctrl+Z lo annulla in un solo passo.`],
+  [/^(.+) finished; board feet on (.+) \((.+) rough\)$/, (m) => `${m[1]} finito; piedi tavola su ${m[2]} (${m[3]} grezzo)`],
+  [
+    /^Finished sizes, rounded to the nearest (.+)\. Grain runs along L unless noted\. Board feet are counted on the rough \(nominal\) thickness each part is cut from: a 3\/4 in part from 4\/4 lumber counts as 1 in\. Edge banding is not included; the sheet count here is a rough area estimate \(Nesting lays the parts out on real sheets and boards, kerf included\)\.$/,
+    (m) => `Misure finite, arrotondate a ${m[1]}. Le fibre vanno lungo L se non indicato. I piedi tavola si contano sullo spessore grezzo da cui si taglia ogni pezzo: un pezzo da 3/4 di pollice ricavato da una tavola 4/4 conta come 1 pollice. I bordi non sono inclusi; il numero di pannelli è una stima dell'area (la Disposizione dispone i pezzi su pannelli e tavole reali, compreso il taglio).`,
+  ],
 ];
 
 const originals = new WeakMap<Text, { orig: string; shown: string }>();

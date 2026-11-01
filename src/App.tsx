@@ -254,7 +254,8 @@ function loadUnits(): UnitSystem {
   } catch {
     /* storage blocked: fall back to the default */
   }
-  return "frac-in";
+  // The classroom edition (Italy) starts in millimetres.
+  return "mm";
 }
 
 function saveUnits(u: UnitSystem): void {

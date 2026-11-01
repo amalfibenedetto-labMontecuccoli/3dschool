@@ -23,6 +23,9 @@ import { redactToolEvent } from "./toolEvent";
 import { checkToolView, type PluginToolView } from "./toolView";
 import { readPluginZip } from "./zip";
 
+/** The plugins of the classroom edition that start without asking (see `init`). */
+const SCHOOL_PLUGINS = ["it.smpavullo.laboratorio"];
+
 /** Ops a plugin batch may not hold: history, nesting batches, navigation, whole-document replacement. */
 export const FORBIDDEN_OPS = new Set(["undo", "redo", "batch", "set_context", "leave_context", "restore"]);
 /** Most ops one batch may hold (crates/kernel/src/refbatch.rs MAX_OPS; lane 16: was 10,000). */
@@ -358,6 +361,17 @@ export class PluginManager {
     }
     this.inited = true;
     for (const files of Object.values(bundledPlugins())) this.add(files, "bundled");
+    // The classroom edition's own plugin is part of the app: it is on from the start, with the
+    // grant of the files shipped here (a new build of it is granted again the same way).
+    for (const id of SCHOOL_PLUGINS) {
+      const e = this.entries.get(id);
+      if (e?.pkg && !e.enabled) {
+        this.grants[id] = { version: e.pkg.manifest.version, permissions: [...e.pkg.manifest.permissions], digest: e.digest, source: e.source };
+        saveGrants(this.grants);
+        e.enabled = true;
+        e.lastError = null;
+      }
+    }
     if (this.platform) {
       try {
         for (const f of await this.platform.list()) this.addPrepared(await preparePackage(f.files, "installed", f.location), "installed", f.location);

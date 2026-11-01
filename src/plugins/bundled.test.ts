@@ -15,7 +15,7 @@ describe("bundled samples", () => {
   const all = bundledPlugins();
 
   it("are the three samples, each valid, MIT, by Sawhorse, with a README and a licence", () => {
-    expect(Object.keys(all).sort()).toEqual(["cabinet-generator", "model-report", "shelf-pin-holes"]);
+    expect(Object.keys(all).sort()).toEqual(["cabinet-generator", "laboratorio", "model-report", "shelf-pin-holes"]);
     for (const [dir, files] of Object.entries(all)) {
       const r = loadPackage(files, "bundled");
       expect(r.ok, `${dir}: ${r.ok ? "" : r.errors.join("; ")}`).toBe(true);

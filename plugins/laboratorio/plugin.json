@@ -1,0 +1,18 @@
+{
+  "$schema": "../../packages/plugin-api/manifest.schema.json",
+  "id": "it.smpavullo.laboratorio",
+  "name": "Laboratorio",
+  "version": "0.1.0",
+  "api": 1,
+  "description": "Per le lezioni di tecnologia: progetti guidati (scatola, casetta per uccelli, sgabello, tavolino, libreria), giunzioni semplici, profili dei bordi e fogli di montaggio. Ispirato a WoodSketch.",
+  "author": "Scuola R. Montecuccoli",
+  "license": "MIT",
+  "permissions": ["model.read", "model.write", "ui", "storage", "file"],
+  "contributes": {
+    "panels": [{ "id": "progetti", "title": "Progetti guidati" }, { "id": "fogli", "title": "Fogli di montaggio" }, { "id": "giunzioni", "title": "Giunzioni" }, { "id": "bordi", "title": "Profili dei bordi" }],
+    "commands": [{ "id": "crea-progetto", "title": "Crea il progetto scelto" }, { "id": "fogli-pdf", "title": "Crea i fogli di montaggio (PDF)" }, { "id": "profilo-bordi", "title": "Applica il profilo agli spigoli selezionati" }],
+    "tools": [{ "id": "giunzione", "title": "Giunzione", "hint": "Passa su una faccia del pezzo e clicca.", "vcb": "Larghezza, profondità", "icon": "M4 20V8h6V4h10v6h-6v10z" }],
+    "menus": [{ "command": "crea-progetto" }, { "command": "fogli-pdf" }, { "command": "profilo-bordi" }]
+  },
+  "entry": "main.js"
+}
