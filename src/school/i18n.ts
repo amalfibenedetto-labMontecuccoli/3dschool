@@ -345,6 +345,7 @@ const IT: Record<string, string> = {
   "Windows, macOS and Linux installers on GitHub": "Programmi di installazione per Windows, macOS e Linux su GitHub",
   "· Sawhorse · MIT": "· 3Dschool · MIT",
   "The 3D model": "Il modello 3D",
+  ". Click to change.": ". Fai clic per cambiarle.",
 };
 
 /** Texts with a number or a name in them. */
@@ -489,7 +490,18 @@ export function startTranslating(): void {
   walk(document.body);
   obs.observe(document.body, OBSERVE);
   document.documentElement.lang = current;
-  document.title = tr(document.title);
+  retitle();
+  // The app names the tab after the drawing ("Untitled - Sawhorse"): keep our name and language.
+  const title = document.querySelector("title");
+  if (title) new MutationObserver(retitle).observe(title, { childList: true, characterData: true, subtree: true });
+}
+
+/** The tab's title with this edition's name, and "Untitled" in Italian. */
+function retitle(): void {
+  const t = document.title;
+  let next = t.replace(/Sawhorse/g, "3Dschool");
+  if (current === "it") next = next.replace(/^Untitled/, "Senza titolo");
+  if (next !== t) document.title = next;
 }
 
 export function setLang(next: Lang): void {
