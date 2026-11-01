@@ -2,7 +2,7 @@ name: Pages
 
 # 3Dschool, the school edition of Sawhorse, published with GitHub Pages ("workflow" build type).
 # The kernel (Rust, compiled to WebAssembly) and the app (Vite) are built here; the base path
-# comes from actions/configure-pages ("/<repository>" on the github.io project address).
+# is "/<repository>/" on the github.io project address.
 on:
   push:
     branches: [main]
@@ -42,11 +42,9 @@ jobs:
       - run: npm ci
       - name: wasm-pack build (the kernel)
         run: npm run wasm
-      - id: pages
-        uses: actions/configure-pages@v5
       - name: build the app
         env:
-          VITE_BASE: ${{ steps.pages.outputs.base_path }}/
+          VITE_BASE: /${{ github.event.repository.name }}/
         run: npm run build
       - run: touch dist/.nojekyll
       - uses: actions/upload-pages-artifact@v4
