@@ -1,3 +1,48 @@
+# 3Dschool
+
+Programma di modellazione 3D che funziona nel browser, pensato per gli alunni della
+**Scuola Secondaria di I grado R. Montecuccoli, Pavullo nel Frignano**: si disegna una forma e la
+si "spinge" fino a farne un solido, come in SketchUp, con misure scritte a mano (`18mm`, `3/4`).
+
+Sito: <https://smpavullo.github.io/3dschool/>
+
+> **Versione modificata di Sawhorse.** Sawhorse è software libero (licenza MIT oppure Apache-2.0) dei
+> suoi autori: <https://github.com/sawhorse3d/sawhorse>. Questa versione è stata adattata per la
+> scuola dai docenti e **non è un prodotto degli autori di Sawhorse, né di SketchUp o Trimble Inc.**;
+> non è da loro approvata. Il testo originale di Sawhorse (in inglese) è più sotto.
+
+## Cosa cambia rispetto a Sawhorse
+
+- **Accesso con l'account Google della scuola**: entrano solo gli indirizzi `@smpavullo.com`.
+- **Salvataggio su Google Drive**: ogni file salvato o esportato va nella cartella *3D* del Drive
+  dell'alunno (se il Drive non risponde, il file viene scaricato sul computer). *Apri da Drive* elenca i file.
+- **Interfaccia in italiano**, con un pulsante per l'inglese; le misure partono in millimetri.
+- **Finestra Informazioni** con chi ha adattato il programma e da dove viene.
+- **Plugin "Laboratorio"**, già attivo, per le lezioni di tecnologia (ispirato a WoodSketch):
+  *Progetti guidati* (scatola, casetta per uccelli, sgabello, tavolino, libreria), *Giunzioni*
+  (scasso, battuta, foro), *Profili dei bordi* (smusso, arrotondamento) e *Fogli di montaggio*
+  (PDF con l'elenco dei pezzi, i passi e le tre viste in scala).
+
+## Come funziona e cosa si salva
+
+Il programma gira tutto nel browser: **non c'è nessun server della scuola né del programma**, nessun
+database e nessuna statistica di utilizzo. I file vanno solo nel Drive dell'utente, con il permesso
+minimo di Google (`drive.file`: l'app vede soltanto i file che crea lei). Nel browser restano solo le
+preferenze (lingua, unità). Il programma pesa circa 2 MB al primo caricamento.
+
+Il sito è ospitato da GitHub Pages: GitHub vede l'indirizzo IP di chi apre la pagina. All'apertura
+viene caricato lo script di accesso di Google.
+
+## Pubblicazione, licenza e provenienza
+
+Il sito si pubblica da solo a ogni modifica (`.github/workflows/pages.yml`). Le modifiche dei docenti
+sono sotto la stessa licenza di Sawhorse (MIT oppure Apache-2.0); i testi originali sono nei file
+`LICENSE-MIT` e `LICENSE-APACHE`. Una descrizione delle modifiche è anche in `NOTICE-SCUOLA.md`.
+
+---
+
+# Testo originale di Sawhorse
+
 # Sawhorse
 
 **[sawhorse3d.com](https://sawhorse3d.com)** · **[Try it in your browser](https://sawhorse3d.com/app/)** (nothing to install, nothing uploaded) · [Download the desktop app](https://github.com/sawhorse3d/sawhorse/releases/tag/v0.1.0-alpha.4) (0.1.0-alpha.4, unsigned for now) · [User guide](https://sawhorse3d.com/guide/)
