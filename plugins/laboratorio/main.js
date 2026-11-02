@@ -4,7 +4,7 @@
 // riscritto qui per il sistema dei plugin.
 import { file, model, storage, ui, units } from "sawhorse";
 import { PROFILES, edgePlan } from "./lib/edges.js";
-import { KINDS, faceInfo, plan } from "./lib/joints.js";
+import { JOINT_DEFAULTS, KINDS, faceInfo, plan } from "./lib/joints.js";
 import { assemblySheets } from "./lib/sheets.js";
 import { MATERIALS, PROJECTS, defaultsOf, projectById } from "./lib/projects.js";
 
@@ -138,17 +138,22 @@ await ui.registerCommand({ id: "fogli-pdf", run: makeSheets });
 // ---- Le giunzioni ------------------------------------------------------------------------
 
 const MM = 0.001;
-/** Le misure di partenza di ogni giunzione (metri). @type {Record<string, { width: number, depth: number }>} */
-const JOINT_DEFAULTS = { scasso: { width: 18 * MM, depth: 6 * MM }, battuta: { width: 10 * MM, depth: 5 * MM }, foro: { width: 8 * MM, depth: 20 * MM } };
 const joint = { kind: "scasso", ...JOINT_DEFAULTS.scasso };
 
 /** @returns {import("sawhorse").Field[]} */
 function jointBody() {
-  const isHole = joint.kind === "foro";
+  const labels = /** @type {Record<string, [string, string | null]>} */ ({
+    scasso: ["Larghezza", "Profondità (0 = passante)"],
+    battuta: ["Larghezza", "Profondità (0 = passante)"],
+    mezzolegno: ["Lunghezza della sovrapposizione", null],
+    dita: ["Larghezza di un dito", "Lunghezza delle dita (0 = spessore)"],
+    foro: ["Diametro", "Profondità (0 = passante)"],
+  });
+  const [wl, dl] = labels[joint.kind] ?? labels.scasso;
   return [
     { type: "select", id: "tipo", label: "Giunzione", value: joint.kind, options: KINDS.map((k) => ({ value: k.value, label: k.label })) },
-    { type: "number", id: "larghezza", label: isHole ? "Diametro" : "Larghezza", unit: "length", value: joint.width, min: 0 },
-    { type: "number", id: "profondita", label: "Profondità (0 = passante)", unit: "length", value: joint.depth, min: 0 },
+    { type: "number", id: "larghezza", label: wl, unit: "length", value: joint.width, min: 0 },
+    ...(dl ? [/** @type {import("sawhorse").Field} */ ({ type: "number", id: "profondita", label: dl, unit: "length", value: joint.depth, min: 0 })] : []),
     { type: "note", id: "come", text: "1. Fai doppio clic sul pezzo per aprirlo. 2. Attiva lo strumento. 3. Clicca sulla faccia, nel punto dove vuoi il taglio (per la battuta, vicino al bordo).", tone: "info" },
     { type: "button", id: "attiva", label: "Attiva lo strumento Giunzione", primary: true },
   ];
@@ -216,7 +221,7 @@ await ui.registerTool({
       return;
     }
     await tool.setView({
-      overlay: [{ kind: "loop", points: made.points, color: data.editable ? "preview" : "warning" }],
+      overlay: made.cuts.map((points) => ({ kind: /** @type {"loop"} */ ("loop"), points, color: data.editable ? "preview" : "warning" })),
       status: data.editable ? `Clic per fare: ${made.note} (${units.format(joint.width)} x ${joint.depth > 0 ? units.format(joint.depth) : "passante"}).` : "Fai doppio clic sul pezzo per aprirlo, poi riprova.",
       value: `${units.format(joint.width)}, ${joint.depth > 0 ? units.format(joint.depth) : "0"}`,
     });
@@ -226,8 +231,10 @@ await ui.registerTool({
       return;
     }
     const batch = model.batch(`Giunzione: ${made.note}`);
-    const drawn = batch.op({ op: "draw", target: { on: "face", object: data.info.solid, face: data.info.face }, points: made.points, closed: true, ...(made.centre ? { curve: { kind: "circle", centre: made.centre } } : {}) });
-    batch.op({ op: "push_pull", object: data.info.solid, face: drawn.face, distance: -made.depth });
+    for (const points of made.cuts) {
+      const drawn = batch.op({ op: "draw", target: { on: "face", object: data.info.solid, face: data.info.face }, points, closed: true, ...(made.centre ? { curve: { kind: "circle", centre: made.centre } } : {}) });
+      batch.op({ op: "push_pull", object: data.info.solid, face: drawn.face, distance: -made.depth });
+    }
     try {
       await batch.commit();
       faceCache = null;
@@ -286,7 +293,7 @@ async function applyProfile() {
       return;
     }
     const faces = await model.faces(it.owner.id);
-    const made = edgePlan(/** @type {"smusso" | "arrotondato"} */ (profile.kind), profile.size, { a: it.a, b: it.b }, { min: solid.min, max: solid.max }, faces);
+    const made = edgePlan(/** @type {"smusso" | "arrotondato" | "cavetto"} */ (profile.kind), profile.size, { a: it.a, b: it.b }, { min: solid.min, max: solid.max }, faces);
     if (typeof made === "string") {
       await ui.notify(made, { kind: "warning" });
       return;

@@ -127,13 +127,13 @@ const casetta = {
 };
 
 /**
- * Sgabello e tavolino: un piano, quattro gambe e quattro traversi.
- * @param {string} title @param {string} name @param {string} about @param {Param[]} params @param {string[]} steps @param {string} tip
+ * Sgabello, tavolino e panca: un piano, quattro gambe e quattro traversi.
+ * @param {string} id @param {string} title @param {string} name @param {string} about @param {Param[]} params @param {string[]} steps @param {string} tip
  * @returns {Project}
  */
-function conGambe(title, name, about, params, steps, tip) {
+function conGambe(id, title, name, about, params, steps, tip) {
   return {
-    id: name === "Sgabello" ? "sgabello" : "tavolino",
+    id,
     title,
     about,
     params,
@@ -185,6 +185,7 @@ function conGambe(title, name, about, params, steps, tip) {
 }
 
 const sgabello = conGambe(
+  "sgabello",
   "Sgabello",
   "Sgabello",
   "Uno sgabello con il piano, quattro gambe e quattro traversi che lo irrigidiscono.",
@@ -207,6 +208,7 @@ const sgabello = conGambe(
 );
 
 const tavolino = conGambe(
+  "tavolino",
   "Tavolino",
   "Tavolino",
   "Un tavolino con il piano, quattro gambe e quattro traversi.",
@@ -227,6 +229,181 @@ const tavolino = conGambe(
   ],
   "Un traverso sotto il piano lo tiene dritto e aggiunge rigidità.",
 );
+
+const panca = conGambe(
+  "panca",
+  "Panca",
+  "Panca",
+  "Una panca lunga con il piano, quattro gambe e quattro traversi.",
+  [
+    { id: "w", label: "Lunghezza del piano", unit: "length", value: 1000 * MM, min: 0 },
+    { id: "d", label: "Larghezza del piano", unit: "length", value: 300 * MM, min: 0 },
+    { id: "h", label: "Altezza", unit: "length", value: 450 * MM, min: 0 },
+    { id: "ts", label: "Spessore del piano", unit: "length", value: 25 * MM, min: 0 },
+    { id: "s", label: "Lato delle gambe", unit: "length", value: 50 * MM, min: 0 },
+    { id: "inset", label: "Distanza delle gambe dal bordo", unit: "length", value: 40 * MM, min: 0 },
+  ],
+  [
+    "Taglia i pezzi alle misure della lista di taglio: le quattro gambe uguali e i quattro traversi a coppie.",
+    "Smussa gli spigoli del piano con lo strumento Profili dei bordi: una panca si tocca sempre.",
+    "Incolla i traversi corti tra le gambe, per fare due telai laterali, e lasciali asciugare.",
+    "Collega i telai con i traversi lunghi e controlla le diagonali con il metro.",
+    "Appoggia il piano e fissalo dal basso con viti, senza farle uscire dalla parte di sopra.",
+  ],
+  "Su una panca lunga conviene un traverso in più al centro: prova ad aggiungerlo tu.",
+);
+
+/**
+ * Un cassetto: fronte, retro, due lati e il fondo, che entra in una scanalatura.
+ * @type {Project}
+ */
+const cassetto = {
+  id: "cassetto",
+  title: "Cassetto",
+  about: "Un cassetto di cinque pezzi: fronte, retro, due lati e il fondo sottile in una scanalatura.",
+  params: [
+    { id: "w", label: "Larghezza", unit: "length", value: 400 * MM, min: 0 },
+    { id: "d", label: "Profondità", unit: "length", value: 400 * MM, min: 0 },
+    { id: "h", label: "Altezza", unit: "length", value: 120 * MM, min: 0 },
+    { id: "t", label: "Spessore dei lati", unit: "length", value: 12 * MM, min: 0 },
+    { id: "tb", label: "Spessore del fondo", unit: "length", value: 6 * MM, min: 0 },
+  ],
+  problem: (p) => {
+    if (!(p.t >= 8 * MM)) return "I lati devono avere almeno 8 mm di spessore.";
+    if (!(p.tb >= 3 * MM) || !(p.tb < p.t)) return "Il fondo deve essere sottile: da 3 mm fino a meno dello spessore dei lati.";
+    if (!(p.w > 6 * p.t) || !(p.d > 6 * p.t)) return "Il cassetto è troppo piccolo per lo spessore scelto.";
+    if (!(p.h > 4 * p.t)) return "Il cassetto è troppo basso per lo spessore scelto.";
+    return null;
+  },
+  build: (p) => {
+    const { w, d, h, t, tb } = p;
+    // Il fondo sta in una scanalatura a 8 mm dal bordo di sotto, nei quattro lati.
+    const g = 8 * MM;
+    return {
+      name: "Cassetto",
+      parts: [
+        { name: "Fronte", boxes: [{ min: [0, 0, 0], size: [w, t, h] }], copies: [{ at: [0, 0, 0] }] },
+        { name: "Retro", boxes: [{ min: [0, 0, 0], size: [w, t, h] }], copies: [{ at: [0, d - t, 0] }] },
+        {
+          name: "Lato",
+          boxes: [{ min: [0, 0, 0], size: [t, d - 2 * t, h] }],
+          copies: [{ at: [0, t, 0], name: "Lato sinistro" }, { at: [w - t, t, 0], name: "Lato destro" }],
+        },
+        { name: "Fondo", boxes: [{ min: [0, 0, 0], size: [w - 2 * t, d - 2 * t, tb] }], copies: [{ at: [t, t, g] }] },
+      ],
+      steps: [
+        "Taglia i pezzi alle misure della lista di taglio.",
+        `Su ognuno dei quattro lati fai, con lo strumento Giunzioni, uno scasso largo ${Math.round(tb / MM)} mm e profondo 5 mm, a ${Math.round(g / MM)} mm dal bordo di sotto: ci scorrerà il fondo.`,
+        "Incolla i due lati tra il fronte e il retro, formando un telaio, e controlla gli angoli con la squadra.",
+        "Infila il fondo nelle scanalature prima che la colla sia asciutta, senza incollarlo: potrà dilatarsi.",
+        "Dopo l'asciugatura carteggia il cassetto, finché scorre senza sforzo.",
+      ],
+      tip: "Lascia un millimetro di gioco per lato rispetto all'apertura in cui il cassetto deve scorrere.",
+    };
+  },
+};
+
+/**
+ * Una cassetta per gli attrezzi, aperta, con un manico tra le due testate.
+ * @type {Project}
+ */
+const cassettaAttrezzi = {
+  id: "attrezzi",
+  title: "Cassetta degli attrezzi",
+  about: "Una cassetta aperta con due testate alte e un manico di legno tra le testate.",
+  params: [
+    { id: "w", label: "Lunghezza", unit: "length", value: 400 * MM, min: 0 },
+    { id: "d", label: "Larghezza", unit: "length", value: 200 * MM, min: 0 },
+    { id: "h", label: "Altezza dei lati", unit: "length", value: 120 * MM, min: 0 },
+    { id: "t", label: "Spessore", unit: "length", value: 12 * MM, min: 0 },
+    { id: "hh", label: "Quanto sporgono le testate", unit: "length", value: 90 * MM, min: 0 },
+  ],
+  problem: (p) => {
+    if (!(p.t >= 8 * MM)) return "Lo spessore deve essere almeno 8 mm.";
+    if (!(p.w > 8 * p.t) || !(p.d > 8 * p.t)) return "La cassetta è troppo piccola per lo spessore scelto.";
+    if (!(p.h > 4 * p.t)) return "I lati sono troppo bassi per lo spessore scelto.";
+    if (!(p.hh >= 60 * MM)) return "Le testate devono sporgere almeno 6 cm, per tenere il manico.";
+    return null;
+  },
+  build: (p) => {
+    const { w, d, h, t, hh } = p;
+    const grip = 25 * MM;
+    const top = h + t + hh;
+    return {
+      name: "Cassetta degli attrezzi",
+      parts: [
+        { name: "Fondo", boxes: [{ min: [0, 0, 0], size: [w - 2 * t, d, t] }], copies: [{ at: [t, 0, 0] }] },
+        {
+          name: "Lato lungo",
+          boxes: [{ min: [0, 0, 0], size: [w - 2 * t, t, h] }],
+          copies: [{ at: [t, 0, t], name: "Lato davanti" }, { at: [t, d - t, t], name: "Lato dietro" }],
+        },
+        {
+          name: "Testata",
+          boxes: [{ min: [0, 0, 0], size: [t, d, top] }],
+          copies: [{ at: [0, 0, 0], name: "Testata sinistra" }, { at: [w - t, 0, 0], name: "Testata destra" }],
+        },
+        { name: "Manico", boxes: [{ min: [0, 0, 0], size: [w - 2 * t, grip, grip] }], copies: [{ at: [t, (d - grip) / 2, top - grip - 20 * MM] }] },
+      ],
+      steps: [
+        "Taglia i pezzi alle misure della lista di taglio.",
+        "Con lo strumento Profili dei bordi arrotonda gli spigoli del manico e delle testate: lo si tiene in mano.",
+        "Incolla il fondo e i due lati lunghi tra le testate, formando la cassetta, e controlla gli angoli con la squadra.",
+        "Incolla il manico tra le due testate, a metà della larghezza, e tienilo fermo finché la colla è asciutta.",
+        "Rinforza gli angoli con due viti per lato, dopo aver fatto i fori con lo strumento Giunzioni.",
+      ],
+      tip: "Prima di incollare il manico provalo in mano con la cassetta piena: se è troppo in alto o in basso, cambia la misura.",
+    };
+  },
+};
+
+/**
+ * Una mensola a muro con due sostegni e un listello per il fissaggio.
+ * @type {Project}
+ */
+const mensola = {
+  id: "mensola",
+  title: "Mensola",
+  about: "Una mensola con il piano, due sostegni sotto e un listello dietro per fissarla al muro.",
+  params: [
+    { id: "w", label: "Lunghezza", unit: "length", value: 600 * MM, min: 0 },
+    { id: "d", label: "Profondità", unit: "length", value: 200 * MM, min: 0 },
+    { id: "t", label: "Spessore", unit: "length", value: 18 * MM, min: 0 },
+    { id: "hs", label: "Altezza dei sostegni", unit: "length", value: 120 * MM, min: 0 },
+    { id: "inset", label: "Distanza dei sostegni dai lati", unit: "length", value: 40 * MM, min: 0 },
+  ],
+  problem: (p) => {
+    if (!(p.t >= 10 * MM)) return "Lo spessore deve essere almeno 10 mm.";
+    if (!(p.w > 2 * (p.inset + p.t) + 60 * MM)) return "La mensola è troppo corta per questi sostegni.";
+    if (!(p.d > 60 * MM)) return "La profondità deve essere almeno 6 cm.";
+    if (!(p.hs >= 80 * MM)) return "I sostegni devono essere alti almeno 8 cm.";
+    return null;
+  },
+  build: (p) => {
+    const { w, d, t, hs, inset } = p;
+    const strip = 60 * MM;
+    return {
+      name: "Mensola",
+      parts: [
+        { name: "Piano", boxes: [{ min: [0, 0, 0], size: [w, d, t] }], copies: [{ at: [0, 0, hs] }] },
+        {
+          name: "Sostegno",
+          boxes: [{ min: [0, 0, 0], size: [t, d, hs] }],
+          copies: [{ at: [inset, 0, 0], name: "Sostegno sinistro" }, { at: [w - inset - t, 0, 0], name: "Sostegno destro" }],
+        },
+        { name: "Listello", boxes: [{ min: [0, 0, 0], size: [w - 2 * (inset + t), t, strip] }], copies: [{ at: [inset + t, d - t, hs - strip] }] },
+      ],
+      steps: [
+        "Taglia i pezzi alle misure della lista di taglio.",
+        "Smussa con lo strumento Profili dei bordi gli spigoli davanti del piano.",
+        "Incolla il listello tra i due sostegni, dietro e in alto: forma un telaio a U.",
+        "Appoggia il piano sopra il telaio, a filo dietro, e fissalo con viti dal basso.",
+        "Avvita il listello al muro con tasselli e viti adatte al muro: chiedi aiuto a un adulto per il trapano.",
+      ],
+      tip: "Una mensola lunga si piega sotto il peso dei libri: oltre 80 cm aggiungi un terzo sostegno al centro.",
+    };
+  },
+};
 
 /**
  * Una libreria con ripiani.
@@ -291,7 +468,7 @@ const libreria = {
 };
 
 /** @type {Project[]} */
-export const PROJECTS = [scatola, casetta, sgabello, tavolino, libreria];
+export const PROJECTS = [scatola, casetta, sgabello, tavolino, panca, cassetto, cassettaAttrezzi, mensola, libreria];
 
 /** @param {string} id */
 export function projectById(id) {

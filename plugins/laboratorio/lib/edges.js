@@ -10,6 +10,7 @@
 export const PROFILES = /** @type {const} */ ([
   { value: "smusso", label: "Smusso (taglio a 45 gradi)" },
   { value: "arrotondato", label: "Arrotondamento" },
+  { value: "cavetto", label: "Cavetto (incavo tondo, come fa la pialla a gola)" },
 ]);
 
 const TOL = 1e-6;
@@ -21,7 +22,7 @@ const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 /**
  * Cosa disegnare e dove, per togliere l'angolo di uno spigolo.
- * @param {"smusso" | "arrotondato"} profile @param {number} size raggio o lato dello smusso
+ * @param {"smusso" | "arrotondato" | "cavetto"} profile @param {number} size raggio o lato dello smusso
  * @param {{ a: Vec3, b: Vec3 }} edge lo spigolo
  * @param {{ min: Vec3, max: Vec3 }} box i limiti del pezzo
  * @param {{ id: number, normal: Vec3, origin: Vec3 }[]} faces le facce del pezzo
@@ -59,6 +60,14 @@ export function edgePlan(profile, size, edge, box, faces) {
   let points;
   if (profile === "smusso") {
     points = [at(0, 0), at(size, 0), at(0, size)];
+  } else if (profile === "cavetto") {
+    // Un quarto di cerchio centrato sull'angolo, tolto dal legno: resta un incavo tondo.
+    const n = 8;
+    points = [at(0, 0)];
+    for (let k = 0; k <= n; k++) {
+      const t = ((90 * k) / n) * (Math.PI / 180);
+      points.push(at(size * Math.cos(t), size * Math.sin(t)));
+    }
   } else {
     // L'angolo meno il quarto di cerchio che resta: il centro è a (r, r), l'arco va da (r, 0) a (0, r).
     const n = 8;
