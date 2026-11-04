@@ -45,7 +45,9 @@ export function contentSecurityPolicy(renderService = process.env.VITE_RENDER_SE
     withRender("img-src 'self' data: blob:"),
     "font-src 'self' data:",
     "worker-src 'self' blob:",
-    withRender("connect-src 'self'") + " https: http://localhost:* http://127.0.0.1:*",
+    // The classroom edition talks only to its own files and to Google (sign-in and Drive); no
+    // render service, and no other host, can be reached from the page.
+    "connect-src 'self' https://www.googleapis.com https://accounts.google.com",
     "media-src 'self' data: blob:",
     "object-src 'none'",
     "base-uri 'self'",

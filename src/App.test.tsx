@@ -101,24 +101,9 @@ describe("App shell", () => {
     render(<App />);
     expect(screen.queryByText("Credits")).toBeNull();
     expect(screen.getAllByRole("tab").map((t) => t.getAttribute("aria-label") ?? t.textContent)).toEqual(["Outliner", "Tags", "Cut list", "Materials", "Styles", "Plugins"]);
-    // Edit > Settings…
+    // The classroom edition has no Settings entry: the render service's address cannot be set.
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: /Settings/ }));
-    const line = await screen.findByTestId("render-gate");
-    await vi.waitFor(() => expect(line.getAttribute("data-status")).toMatch(/off|unreachable/));
-    expect(line.textContent).toMatch(/^Renders are off/);
-    // A service that answers turns renders on.
-    vi.stubGlobal("fetch", (url: string) => (String(url) === "https://render.test/healthz" ? Promise.resolve(new Response(JSON.stringify({ ok: true, service: "sawhorse-render", version: "0.1.0" }), { status: 200 })) : Promise.reject(new TypeError("offline"))));
-    fireEvent.change(screen.getByLabelText("Render service address"), { target: { value: "https://render.test/" } });
-    fireEvent.click(screen.getByRole("button", { name: "Save" }));
-    await vi.waitFor(() => expect(screen.getByTestId("render-gate").getAttribute("data-status")).toBe("ready"));
-    expect(screen.getByTestId("render-gate").textContent).toBe("Renders are on: the render service at https://render.test answered. The Credits chip and the Render pane are shown.");
-    expect(localStorage.getItem(RENDER_URL_KEY)).toBe("https://render.test");
-    expect(await screen.findByRole("tab", { name: "Render" })).toBeTruthy();
-    expect(screen.getByText("Credits")).toBeTruthy();
-    // Cleared: off again.
-    fireEvent.click(screen.getByRole("button", { name: "Clear" }));
-    await vi.waitFor(() => expect(screen.queryByRole("tab", { name: "Render" })).toBeNull());
+    expect(screen.queryByRole("menuitem", { name: /Settings/ })).toBeNull();
   });
 
   it("types straight into the value bar mid-gesture, and picks units from the chip (lane 24)", () => {

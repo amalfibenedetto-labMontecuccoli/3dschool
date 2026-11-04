@@ -2589,7 +2589,6 @@ export function App() {
             { label: "Choose…", title: "The unit picker beside the Value Control Box", onSelect: () => setUnitPickerOpen((n) => n + 1) },
           ],
         },
-        { label: "Settings…", title: "The render service (renders are off until one is set and answering)", onSelect: () => setSettingsOpen(true) },
       ],
       View: [
         // Lane 12: the model or its drawing sheets.
