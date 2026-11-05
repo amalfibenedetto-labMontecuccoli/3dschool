@@ -164,15 +164,17 @@ Another count or distance replaces the last one. Ctrl+Z takes the whole array ba
 - **What it lands on** joins it the way drawing there would: dropped against another shape, the touching edges become one edge; dropped across one, both are split where they cross into separate faces. A move that would twist a face into a bow-tie splits it into two faces instead.
 - Moved or copied shapes push/pull like any other: the solid has exactly the shape's area times the distance.
 - What you moved stays selected where it went, so you can move it again, or press P and type a distance.
+- The status line names what moved ("Moved region 1 24 in along +red"). Shapes from more than one sketch each name their sketch, numbered in the order the sketches were made: "Moved region 1 of sketch 1 and region 1 of sketch 2 24 in along +red." Rotate and Scale say it the same way.
 - A circle, arc or polygon is one curve: click its rim (or inside it, for its face) and it moves whole. Moving one of its points on its own is refused; Edit > Explode Curve makes its edges plain first ([Curves](#circles-arcs-and-polygons-are-curves)).
 
 **Rotate (Q).** The protractor appears on the face under the cursor, or level on the ground.
 - Right, Left and Up lock it upright facing red, upright facing green, or level. Hold Shift to keep the plane it is on.
 - Click the centre, click where the angle starts, then click where it ends.
-- Or type the angle. The cursor snaps to the protractor's 15 degree ticks; a typed angle is exact.
+- Or type the angle. The cursor snaps to the protractor's 15 degree ticks; a typed angle is exact, and a quarter turn (typed, or snapped to 90, 180 or 270) leaves faces square to the axes to the last digit.
+- A typed `0`, `360` or any other whole number of turns turns nothing: the status line says "An angle of 0 turns nothing; type another angle or press Esc.", nothing changes, and Rotate waits for another angle (solids and sketch shapes alike).
 - With nothing selected, the solid (or the sketch shape) under the centre click turns.
 - Ctrl copies; `x3` and `/4` work as in Move. A ring of four chair legs is one copy at 90 degrees, then `x3`.
-- **Sketch shapes** turn on their own plane: the protractor lies on the shape's sketch whatever the cursor is over, so a shape drawn on the ground turns about the blue axis and stays flat on the ground. An arrow key (or Shift) puts the protractor on another plane: a whole shape then turns off its plane onto a new one (stand a rectangle up with Right and `90`); part of a shape turns and is flattened back into its plane. A shape turned by 0 or 360 degrees does not move: the status line says there is nothing to move, and there is no step to undo.
+- **Sketch shapes** turn on their own plane: the protractor lies on the shape's sketch whatever the cursor is over, so a shape drawn on the ground turns about the blue axis and stays flat on the ground. An arrow key (or Shift) puts the protractor on another plane: a whole shape then turns off its plane onto a new one (stand a rectangle up with Right and `90`); part of a shape turns and is flattened back into its plane.
 
 **Scale (S).** Grips appear on the box around the selection (or the solid under the cursor):
 - a face-centre grip stretches one way, an edge grip two ways, and a corner grip three;
@@ -232,7 +234,7 @@ Tags control what you see, nothing else: geometry stays where it is and in its g
 
 ## Scenes
 
-A scene remembers the camera, which tags are hidden, which group or component is open, and the style and shadows (Styles pane), whether the ground grid shows, and which section planes are active and hidden. The tabs above the view are your scenes: **+** saves the current view as a new one, a click goes to it, double-click renames it, and right-click updates it to the current view, renames or deletes it. View > Add Scene does the same as +. Going to a scene is an undo step for the tags, the style and the grid it switches (the camera is not); the status line says when it hid or showed the grid ("Scene 'Front': grid hidden."). A scene from a SketchUp file, or one saved before Sawhorse remembered the grid, leaves the grid as it is.
+A scene remembers the camera, which tags are hidden, which group or component is open, and the style and shadows (Styles pane), whether the ground grid shows, and which section planes are active and hidden. The tabs above the view are your scenes: **+** saves the current view as a new one, a click goes to it (on the active tab too: it brings the scene back after you changed the view, the tags or the grid by hand), double-click renames it, and right-click updates it to the current view, renames or deletes it. View > Add Scene does the same as +. Going to a scene is an undo step for the tags, the style and the grid it switches (the camera is not); the status line says when it hid or showed the grid ("Scene 'Front': grid hidden."). A scene from a SketchUp file, or one saved before Sawhorse remembered the grid, leaves the grid as it is.
 
 ## Materials and paint
 

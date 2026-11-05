@@ -15,7 +15,7 @@
 import type { DocState, Entity, KernelOp, MeshData, OpOutcome, V3, Xform } from "../kernel/types";
 import { curveSegments, curveView, onCurve } from "../lib/curves";
 import { objectEdges, objectOf, sketchEdges } from "../lib/entities";
-import { faceOf, regionName, solidName } from "../lib/names";
+import { faceOf, regionName, regionOf, solidName } from "../lib/names";
 import { describeNode, graphOf, scopeEntity, solidsIn } from "../lib/scope";
 import { sectionById, sectionCorners } from "../lib/sections";
 import type { OutlineTarget } from "../lib/edit";
@@ -37,12 +37,26 @@ export function translation(d: V3): Xform {
   return { ...IDENTITY, translation: [d[0], d[1], d[2]] };
 }
 
-/** Turn `angle` radians about the line through `c` along unit `axis` (right-handed). */
-export function rotation(c: V3, axis: V3, angle: number): Xform {
+/** Lane 27 (issue #10): the cosine and sine of a turn. When the turn is known in degrees
+ * (typed, or snapped to a protractor tick) and is a whole number of quarter turns, they are
+ * exactly 0 and plus or minus 1, tested on the degrees, never on the radians: a sketch stood
+ * up by Right+90 then faces (0, -1, 0), not (0, -1, 6e-17). Otherwise `Math.cos` and
+ * `Math.sin` of the radians. */
+export function turnCosSin(angle: number, deg?: number | null): [number, number] {
+  if (deg !== undefined && deg !== null && deg % 90 === 0) {
+    const q = (((deg / 90) % 4) + 4) % 4;
+    return [[1, 0, -1, 0][q], [0, 1, 0, -1][q]];
+  }
+  return [Math.cos(angle), Math.sin(angle)];
+}
+
+/** Turn `angle` radians about the line through `c` along unit `axis` (right-handed). `deg`:
+ * the same turn in degrees when it is known exactly (typed or snapped), so a quarter turn is
+ * exact ({@link turnCosSin}). */
+export function rotation(c: V3, axis: V3, angle: number, deg?: number | null): Xform {
   const n = len(axis);
   const [x, y, z] = n > 0 ? mul(axis, 1 / n) : [0, 0, 1];
-  const s = Math.sin(angle);
-  const k = Math.cos(angle);
+  const [k, s] = turnCosSin(angle, deg);
   const t = 1 - k;
   const linear: [V3, V3, V3] = [
     [t * x * x + k, t * x * y - s * z, t * x * z + s * y],
@@ -150,12 +164,14 @@ export function curveNoun(mesh: MeshData | null | undefined, sketch: number, cur
 }
 
 /** "region 2", "a circle", "3 sketch edges": what of one sketch moves. A curve and the face
- * it bounds are one shape (lane 23b: 200 circles with their faces were "201 items"). */
-function sketchPartNames(p: SketchPart, mesh?: MeshData | null): Named[] {
+ * it bounds are one shape (lane 23b: 200 circles with their faces were "201 items").
+ * `qualify` names the sketch with each region ("region 1 of sketch 2"), for a message
+ * naming regions of more than one sketch (lane 27, issue #10: "Moved region 1 and region 1"). */
+function sketchPartNames(p: SketchPart, mesh?: MeshData | null, qualify = false): Named[] {
   const facedRegions = new Set((p.faced ?? []).map(([, r]) => r));
   const curves = p.curves ?? [];
   // Regions bounded by a selected curve are named by that curve.
-  const out: Named[] = p.regions.filter((r) => !facedRegions.has(r)).map((r) => ({ text: regionName(p.sketch, r), n: 1 }));
+  const out: Named[] = p.regions.filter((r) => !facedRegions.has(r)).map((r) => ({ text: qualify ? regionOf(p.sketch, r) : regionName(p.sketch, r), n: 1 }));
   const byKind = new Map<string, number>();
   for (const c of curves) {
     const kind = curveView(mesh ?? null, { kind: "sketch", id: p.sketch }, c)?.view.kind ?? "polyline";
@@ -168,9 +184,13 @@ function sketchPartNames(p: SketchPart, mesh?: MeshData | null): Named[] {
 }
 
 /** "solid 3", "solids 2 and 5", "component Shelf (2 of 4)", "face 6 of solid 3", "region 1",
- * "a circle", "200 circles". `mesh` names curves by kind ("a curve" without it). */
+ * "a circle", "200 circles". `mesh` names curves by kind ("a curve" without it). Regions of
+ * two or more sketches each name their sketch: "region 1 of sketch 1 and region 1 of
+ * sketch 2" (lane 27, issue #10). */
 export function describeSubject(s: Subject, mesh?: MeshData | null): string {
-  const sk = (s.sketches ?? []).flatMap((p) => sketchPartNames(p, mesh));
+  const parts = s.sketches ?? [];
+  const regionSketches = new Set(parts.filter((p) => p.regions.some((r) => !(p.faced ?? []).some(([, f]) => f === r))).map((p) => p.sketch));
+  const sk = parts.flatMap((p) => sketchPartNames(p, mesh, regionSketches.size > 1));
   const one = (text: string): Named => ({ text, n: 1 });
   const names: Named[] = s.kind === "geometry" ? [one(s.what), ...sk] : [...s.objects.map((o) => one(solidName(o))), ...(s.names ?? []).map(one), ...sk];
   const total = names.reduce((a, x) => a + x.n, 0);
